@@ -10,7 +10,8 @@ import java.util.List;
 
 public interface DocumentService {
 
-    public String readDocxFile(InfoPerson varaiblesList) throws IOException;
+
+    String readDocxFile(InfoPerson infoPerson) throws IOException;
 
     public String readTxtFile(String path) throws IOException;
 }
