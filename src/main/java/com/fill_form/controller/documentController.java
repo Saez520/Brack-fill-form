@@ -16,10 +16,15 @@ public class documentController {
 
     @PostMapping("/readDocxFile")
     public String readDocxFile(@RequestBody() InfoPerson InfoPerson) throws IOException{
-
+        System.out.println("Endpoint /document/readDocxFile fue llamado.");
 
         documentService.readDocxFile(InfoPerson);
 
         return "Documento modificado y guardado como DOCX correctamente.";
+    }
+
+    @GetMapping("/test")
+    public String test() {
+        return "La aplicación está funcionando.";
     }
 }

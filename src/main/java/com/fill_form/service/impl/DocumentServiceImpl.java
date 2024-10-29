@@ -14,6 +14,7 @@ import org.docx4j.openpackaging.exceptions.Docx4JException;
 import org.docx4j.openpackaging.packages.WordprocessingMLPackage;
 import org.springframework.stereotype.Service;
 
+
 import java.io.*;
 import java.util.Base64;
 import java.util.List;
@@ -76,27 +77,19 @@ public class DocumentServiceImpl implements DocumentService {
         }
     }
 
-    private boolean checkIfImage(XWPFRun run, VariableDTO var, String text) throws IOException{
+    private boolean checkIfImage(XWPFRun run, VariableDTO var, String text) throws IOException {
         if (TypeFirm.valueOfName(var.getName())) {
-            String firmPadre;
-            String firmaMadre;
-            if (TypeFirm.FIRMA_PADRE.varFirma().equals(var.getName())) firmPadre = var.getValue(); return true;
-            if (TypeFirm.FIRMA_MADRE.varFirma().equals(var.getName())) firmaMadre = var.getValue(); return true;
-            if (JUtils.isEmptyNull(firmPadre) && JUtils.isEmptyNull(firmaMadre) {
-                addImagesInOneLine(run, var.getValue(), 180, 80);
-            }
             replaceTextWithImage(run, var.getValue(), 180, 80);
             return true;
         }
 
         if (TipoAfiliacionSalud.valueOfName(var.getName())) {
-            replaceTextWithImage(run, var.getValue().equals("X") ? MarcacionX : MarcacionVacia, 18,13);
+            replaceTextWithImage(run, var.getValue().equals("X") ? MarcacionX : MarcacionVacia, 18, 13);
             return true;
         }
         return false;
     }
-
-    public static void replaceTextWithImage(XWPFRun run, String base64Image, Integer widthEmu, Integer heigthEmu) throws IOException {
+    public static void replaceTextWithImage(XWPFRun run, String base64Image, Integer widthEmu, Integer heightEmu) throws IOException {
         // Verificar y eliminar el prefijo de la cadena base64 si existe
         if (base64Image.startsWith("data:image/png;base64,")) {
             base64Image = base64Image.substring("data:image/png;base64,".length());
@@ -114,7 +107,14 @@ public class DocumentServiceImpl implements DocumentService {
 
             // Insertar la imagen
             try (FileInputStream is = new FileInputStream(tempFile)) {
-                run.addPicture(is, Document.PICTURE_TYPE_PNG, tempFile.getName(), Units.toEMU(widthEmu), Units.toEMU(heigthEmu));
+                String blipId = run.getDocument().addPictureData(is, Document.PICTURE_TYPE_PNG);
+                int id = run.getDocument().getNextPicNameNumber(Document.PICTURE_TYPE_PNG);
+
+                // Remover el texto original
+                run.setText("", 0);
+
+                // Insertar la imagen en el run
+                run.addPicture(is, Document.PICTURE_TYPE_PNG, tempFile.getName(), Units.toEMU(widthEmu), Units.toEMU(heightEmu));
             }
 
             // Eliminar el archivo temporal
@@ -124,6 +124,7 @@ public class DocumentServiceImpl implements DocumentService {
             e.printStackTrace();
         }
     }
+
 
     private static void addImagesInOneLine(XWPFDocument doc, String[] base64Images, Integer widthEmu, Integer heightEmu) throws IOException {
         XWPFParagraph paragraph = doc.createParagraph();
